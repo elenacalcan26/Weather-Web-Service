@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - network-app
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+
+  meteo-server:
+    links:
+      - mysql
+    build:
+      ./src
+    ports:
+      - "5000:5000"
+    networks:
+      - network-app
+
+volumes:
+  db_data:
+    name: db_data
+
+networks:
+  network-app:
+    name: network-app
