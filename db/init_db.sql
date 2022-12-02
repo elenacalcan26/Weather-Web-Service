@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS City
     longitude DOUBLE(7, 2) NOT NULL,
     CONSTRAINT fk_country_id FOREIGN KEY (country_id)
     REFERENCES Country(id)
-    DELETE ON CASCADE,
+    ON DELETE CASCADE,
     CONSTRAINT uk_city UNIQUE(country_id, city_name)
 );
 
@@ -30,6 +30,6 @@ CREATE TABLE IF NOT EXISTS Temperature
     city_id INTEGER NOT NULL,
     CONSTRAINT fk_city_id FOREIGN KEY (city_id)
     REFERENCES City(id)
-    DELETE ON CASCADE,
+    ON DELETE CASCADE,
     CONSTRAINT uk_temp UNIQUE(city_id, timestamp)
 );
