@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS City
     city_name VARCHAR(30) NOT NULL,
     latitude DOUBLE(7, 2) NOT NULL,
     longitude DOUBLE(7, 2) NOT NULL,
-    CONSTRAINT fk_country_id FOREIGN KEY (country_id) REFERENCES Country(id),
+    CONSTRAINT fk_country_id FOREIGN KEY (country_id)
+    REFERENCES Country(id)
+    DELETE ON CASCADE,
     CONSTRAINT uk_city UNIQUE(country_id, city_name)
 );
 
@@ -26,6 +28,8 @@ CREATE TABLE IF NOT EXISTS Temperature
     value DOUBLE(7, 2),
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     city_id INTEGER NOT NULL,
-    CONSTRAINT fk_city_id FOREIGN KEY (city_id) REFERENCES City(id),
+    CONSTRAINT fk_city_id FOREIGN KEY (city_id)
+    REFERENCES City(id)
+    DELETE ON CASCADE,
     CONSTRAINT uk_temp UNIQUE(city_id, timestamp)
 );
