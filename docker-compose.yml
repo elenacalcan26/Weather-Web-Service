@@ -5,9 +5,12 @@ services:
     image: mysql:5.7
     restart: always
     ports:
-      - "27017:27017"
+      - "33000:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: WeatherDB
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
     networks:
       - network-app
     volumes:
@@ -15,14 +18,17 @@ services:
       - ./db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
 
   meteo-server:
-    links:
+    depends_on:
       - mysql
     build:
       ./src
+    restart:
+      "always"
     ports:
       - "5000:5000"
     networks:
       - network-app
+
 
 volumes:
   db_data:
