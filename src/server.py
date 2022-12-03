@@ -108,6 +108,9 @@ def cities_op():
 
         country_id = int(body["idTara"])
         city_name = body["nume"]
+
+        # TODO sa verific si tipul de data daca este float sau int ??
+
         latitude = float(body["lat"])
         longitude = float(body["lon"])
 
@@ -137,9 +140,20 @@ def cities_op():
 
         return Response(status=200, mimetype="json/application", response=json.dumps(city_resp))
 
-@app.route('/api/cities/country/id_Tara', methods=["GET"])
+@app.route('/api/cities/country/<id_Tara>', methods=["GET"])
 def get_cities_from_country(id_Tara):
-    return
+    if request.method == "GET":
+        get_query = """SELECT * FROM City WHERE country_id = %s"""
+        query_cond = (int(id_Tara), )
+        cursor.execute(get_query, query_cond)
+        records = cursor.fetchall()
+        cities_resp = []
+        for record in records:
+            obj = {}
+            obj = {"id": record[0], "idTara": record[1], "nume": record[2], "lat": record[3], "lon": record[4]}
+            cities_resp.append(obj)
+
+        return Response(status=200, mimetype="json/application", response=json.dumps(cities_resp))
 
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)
