@@ -57,6 +57,7 @@ def countries_op():
 
         return Response(status=200, mimetype="json/application", response=json.dumps(country_resp))
 
+
 @app.route('/api/countries/<id>', methods=["PUT", "DELETE"])
 def country_processing(id):
     if request.method == "PUT":
@@ -79,9 +80,66 @@ def country_processing(id):
         except:
             return Response(status=400)
         db_connection.commit()
+
         return Response(status=200)
 
-    return 'GG'
+    elif request.method == "DELETE":
+
+        delete_country_query = """DELETE FROM Country WHERE id = %s"""
+        data_to_del = (int(id), )
+
+        try:
+            cursor.execute(delete_country_query, data_to_del)
+        except:
+            return Response(status=400)
+
+        db_connection.commit()
+
+        return Response(status=200)
+
+
+@app.route('/api/cities', methods=["GET", "POST"])
+def cities_op():
+    if request.method == "POST":
+        body = request.json
+
+        if "idTara" not in body or "nume" not in body or "lat" not in body or "lon" not in body:
+            return Response(status=400)
+
+        country_id = int(body["idTara"])
+        city_name = body["nume"]
+        latitude = float(body["lat"])
+        longitude = float(body["lon"])
+
+        add_city_query = """INSERT INTO City (country_id, city_name, latitude, longitude) VALUES (%s, %s, %s, %s)"""
+        data_to_insert = (country_id, city_name, latitude, longitude)
+
+        try:
+            cursor.execute(add_city_query, data_to_insert)
+            db_connection.commit()
+        except:
+            return Response(status=400)
+
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        last_inserted_id = cursor.fetchone()[0]
+        return Response(status=200, mimetype="json/application", response=json.dumps({'id': last_inserted_id}))
+
+    elif request.method == "GET":
+        get_query = """SELECT * FROM City"""
+        cursor.execute(get_query)
+        records = cursor.fetchall()
+        city_resp = []
+
+        for record in records:
+            obj = {}
+            obj = {"id": record[0], "idTara": record[1], "nume": record[2], "lat": record[3], "lon": record[4]}
+            city_resp.append(obj)
+
+        return Response(status=200, mimetype="json/application", response=json.dumps(city_resp))
+
+@app.route('/api/cities/country/id_Tara', methods=["GET"])
+def get_cities_from_country(id_Tara):
+    return
 
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)
