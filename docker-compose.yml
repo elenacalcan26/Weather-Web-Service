@@ -13,6 +13,7 @@ services:
       MYSQL_PASSWORD: admin
     networks:
       - network-app
+      - db-network
     volumes:
       - db_data:/var/lib/mysql
       - ./db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
@@ -29,6 +30,14 @@ services:
     networks:
       - network-app
 
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - db-network
+
 
 volumes:
   db_data:
@@ -37,3 +46,5 @@ volumes:
 networks:
   network-app:
     name: network-app
+  db-network:
+    name: db-network
