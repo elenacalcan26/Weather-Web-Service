@@ -5,7 +5,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install -r /tmp/requirements.txt
 
 WORKDIR /src
-COPY server.py /src
+COPY *.py /src
 
 EXPOSE 500
 

@@ -1,19 +1,9 @@
 from flask import Flask, request, Response
 import json
 
-import  mysql.connector as mysql
+from db_utils import *
 
 app = Flask(__name__)
-
-db_connection=mysql.connect(
-    host='mysql',
-    port=3306,
-    user='admin',
-    password='admin',
-    database='WeatherDB'
-)
-
-cursor = db_connection.cursor()
 
 @app.route('/api/countries', methods=["GET", "POST"])
 def countries_op():
@@ -32,17 +22,15 @@ def countries_op():
         if not isinstance(country_name, str) or not isinstance(lat, float) or not isinstance(lon, float):
             return Response(status=400)
 
-        query = """INSERT INTO Country (country_name, latitude, longitude)
-                    VALUES (%s, %s, %s)"""
-        data = (country_name, lat, lon)
-        try:
-            cursor.execute(query, data)
-            db_connection.commit()
-        except:
-            return Response(status=400)
-        cursor.execute("SELECT LAST_INSERT_ID()")
-        last_inserted_id = cursor.fetchone()[0]
-        return Response(status=201, mimetype="json/application", response=json.dumps({'id': last_inserted_id}))
+        data_to_be_inserted = (country_name, lat, lon)
+        insert_status = insert_record(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS, data_to_be_inserted)
+
+        if insert_status == 400:
+            return Response(status=insert_status)
+
+        return Response(status=201,
+                        mimetype="json/application",
+                        response=json.dumps(success_insertion_resp_body()))
 
     elif request.method == "GET":
         get_query = """SELECT * FROM Country"""
@@ -108,24 +96,18 @@ def cities_op():
 
         country_id = int(body["idTara"])
         city_name = body["nume"]
-
-        # TODO sa verific si tipul de data daca este float sau int ??
-
         latitude = float(body["lat"])
         longitude = float(body["lon"])
 
-        add_city_query = """INSERT INTO City (country_id, city_name, latitude, longitude) VALUES (%s, %s, %s, %s)"""
         data_to_insert = (country_id, city_name, latitude, longitude)
+        insert_status = insert_record(CITY_TABLE, CITY_TABLE_COLUMNS, data_to_insert)
 
-        try:
-            cursor.execute(add_city_query, data_to_insert)
-            db_connection.commit()
-        except:
-            return Response(status=400)
+        if insert_status == 400:
+            return Response(status= 400)
 
-        cursor.execute("SELECT LAST_INSERT_ID()")
-        last_inserted_id = cursor.fetchone()[0]
-        return Response(status=200, mimetype="json/application", response=json.dumps({'id': last_inserted_id}))
+        return Response(status=201,
+                        mimetype="json/application",
+                        response=json.dumps(success_insertion_resp_body()))
 
     elif request.method == "GET":
         get_query = """SELECT * FROM City"""
