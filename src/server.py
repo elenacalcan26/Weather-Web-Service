@@ -23,7 +23,7 @@ def countries_op():
             return Response(status=400)
 
         data_to_be_inserted = (country_name, lat, lon)
-        insert_status = insert_record(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS, data_to_be_inserted)
+        insert_status = insert_record(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS_INSERT, data_to_be_inserted)
 
         if insert_status == 400:
             return Response(status=insert_status)
@@ -33,17 +33,8 @@ def countries_op():
                         response=json.dumps(success_insertion_resp_body()))
 
     elif request.method == "GET":
-        get_query = """SELECT * FROM Country"""
-        cursor.execute(get_query)
-        records = cursor.fetchall()
-        country_resp = []
-
-        for record in records:
-            obj = {}
-            obj = {"id": record[0], "nume": record[1], "lat": record[2], "lon": record[3]}
-            country_resp.append(obj)
-
-        return Response(status=200, mimetype="json/application", response=json.dumps(country_resp))
+        data = get_data_from_table(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS)
+        return Response(status=200, mimetype="json/application", response=json.dumps(data))
 
 
 @app.route('/api/countries/<id>', methods=["PUT", "DELETE"])
@@ -72,17 +63,7 @@ def country_processing(id):
         return Response(status=200)
 
     elif request.method == "DELETE":
-
-        delete_country_query = """DELETE FROM Country WHERE id = %s"""
-        data_to_del = (int(id), )
-
-        try:
-            cursor.execute(delete_country_query, data_to_del)
-        except:
-            return Response(status=400)
-
-        db_connection.commit()
-
+        del_status = delete_record_by_id(COUNTRY_TABLE, int(id))
         return Response(status=200)
 
 
@@ -100,7 +81,7 @@ def cities_op():
         longitude = float(body["lon"])
 
         data_to_insert = (country_id, city_name, latitude, longitude)
-        insert_status = insert_record(CITY_TABLE, CITY_TABLE_COLUMNS, data_to_insert)
+        insert_status = insert_record(CITY_TABLE, CITY_TABLE_COLUMNS_INSERT, data_to_insert)
 
         if insert_status == 400:
             return Response(status= 400)
@@ -110,17 +91,8 @@ def cities_op():
                         response=json.dumps(success_insertion_resp_body()))
 
     elif request.method == "GET":
-        get_query = """SELECT * FROM City"""
-        cursor.execute(get_query)
-        records = cursor.fetchall()
-        city_resp = []
-
-        for record in records:
-            obj = {}
-            obj = {"id": record[0], "idTara": record[1], "nume": record[2], "lat": record[3], "lon": record[4]}
-            city_resp.append(obj)
-
-        return Response(status=200, mimetype="json/application", response=json.dumps(city_resp))
+        data = get_data_from_table(CITY_TABLE, CITY_TABLE_COLUMNS)
+        return Response(status=200, mimetype="json/application", response=json.dumps(data))
 
 @app.route('/api/cities/country/<id_Tara>', methods=["GET"])
 def get_cities_from_country(id_Tara):
