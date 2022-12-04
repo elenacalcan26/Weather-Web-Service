@@ -1,4 +1,5 @@
 import  mysql.connector as mysql
+import sys
 
 db_connection=mysql.connect(
     host='mysql',
@@ -12,18 +13,18 @@ cursor = db_connection.cursor()
 
 COUNTRY_TABLE = 'Country'
 CITY_TABLE = 'City'
-COUNTRY_TABLE_COLUMNS_INSERT = '(country_name, latitude, longitude)'
-CITY_TABLE_COLUMNS_INSERT = '(country_id, city_name, latitude, longitude)'
+COUNTRY_TABLE_COLUMNS_INSERT = ('country_name', 'latitude', 'longitude')
+CITY_TABLE_COLUMNS_INSERT = ('country_id', 'city_name', 'latitude', 'longitude')
 COUNTRY_TABLE_COLUMNS = ('id', 'nume', 'lat', 'lon')
 CITY_TABLE_COLUMNS = ('id', 'idTara', 'nume', 'lat', 'lon')
 
 def insert_record(table, columns, data):
+    body = ', '.join(str(column) for column in columns)
     try:
-        cursor.execute(f'INSERT INTO {table} {columns} VALUES {data}')
-        db_connection.commit()
+        cursor.execute(f'INSERT INTO {table} ({body}) VALUES {data}')
     except:
         return 400
-
+    db_connection.commit()
     return 201
 
 def success_insertion_resp_body():
@@ -53,7 +54,7 @@ def delete_record_by_id(table, id):
     return 200
 
 def get_filtered_data(table, **kwargs):
-    query = f'SELECT * from {table}'
+    query = f'SELECT * FROM {table}'
 
     for key, val in kwargs.items():
         query += f' WHERE {key} = {val}'
@@ -61,3 +62,30 @@ def get_filtered_data(table, **kwargs):
     cursor.execute(query)
     records = cursor.fetchall()
     return records
+
+def update_record(table, columns, data, id):
+    query = f'UPDATE {table} SET '
+    num_col = len(columns)
+
+    for i in range(num_col):
+        column = columns[i]
+        new_data = data[i]
+        query += f'{column} = '
+
+        if type(new_data) == str:
+            query += f"'{new_data}'"
+        else:
+            query += f'{new_data}'
+
+        if i < num_col - 1:
+            query += ', '
+
+    query += f' WHERE id = {id}'
+    print(query, flush=True)
+    try:
+        cursor.execute(query)
+    except:
+        return 400
+
+    db_connection.commit()
+    return 200

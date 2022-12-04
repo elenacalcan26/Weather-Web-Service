@@ -45,25 +45,23 @@ def country_processing(id):
     if request.method == "PUT":
         smth = request.json
 
-        if "nume" not in smth or "lat" not in smth or "lon" not in smth:
+        if "id" not in smth or "nume" not in smth or "lat" not in smth or "lon" not in smth:
             return Response(status=400)
 
-        sel_country_query = """SELECT * FROM Country WHERE id = %s"""
-        cursor.execute(sel_country_query, (int(id), ))
-        selected_country = cursor.fetchone()
+        if int(id) != int(smth['id']):
+            return Response(status=400)
+
+        args = {'id': int(id)}
+        selected_country = get_filtered_data(COUNTRY_TABLE, **args)
 
         if selected_country is None:
             return Response(status=400)
 
-        update_country_query = """UPDATE Country SET country_name = %s, latitude = %s, longitude = %s WHERE id = %s"""
-        data = (smth["nume"], float(smth["lat"]), float(smth["lon"]), int(id))
-        try:
-            cursor.execute(update_country_query, data)
-        except:
-            return Response(status=400)
-        db_connection.commit()
+        data_to_update = (str(smth['nume']), float(smth['lat']), float(smth['lon']))
+        # TODO chenge name of COUNTRY_TABLE_COLUMNS_INSERT to smth else
+        update_status = update_record(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS_INSERT, data_to_update, int(id))
 
-        return Response(status=200)
+        return Response(status=update_status)
 
     elif request.method == "DELETE":
         del_status = delete_record_by_id(COUNTRY_TABLE, int(id))
