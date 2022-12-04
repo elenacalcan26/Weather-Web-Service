@@ -33,8 +33,11 @@ def countries_op():
                         response=json.dumps(success_insertion_resp_body()))
 
     elif request.method == "GET":
-        data = get_data_from_table(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS)
-        return Response(status=200, mimetype="json/application", response=json.dumps(data))
+        records = get_filtered_data(COUNTRY_TABLE)
+        payload = process_response_payload(records, COUNTRY_TABLE_COLUMNS)
+        return Response(status=200,
+                        mimetype="json/application",
+                        response=json.dumps(payload))
 
 
 @app.route('/api/countries/<id>', methods=["PUT", "DELETE"])
@@ -91,23 +94,20 @@ def cities_op():
                         response=json.dumps(success_insertion_resp_body()))
 
     elif request.method == "GET":
-        data = get_data_from_table(CITY_TABLE, CITY_TABLE_COLUMNS)
-        return Response(status=200, mimetype="json/application", response=json.dumps(data))
+        records = get_filtered_data(CITY_TABLE)
+        payload = process_response_payload(records, CITY_TABLE_COLUMNS)
+        return Response(status=200, mimetype="json/application", response=json.dumps(payload))
 
 @app.route('/api/cities/country/<id_Tara>', methods=["GET"])
 def get_cities_from_country(id_Tara):
     if request.method == "GET":
-        get_query = """SELECT * FROM City WHERE country_id = %s"""
-        query_cond = (int(id_Tara), )
-        cursor.execute(get_query, query_cond)
-        records = cursor.fetchall()
-        cities_resp = []
-        for record in records:
-            obj = {}
-            obj = {"id": record[0], "idTara": record[1], "nume": record[2], "lat": record[3], "lon": record[4]}
-            cities_resp.append(obj)
+        args = {'country_id': int(id_Tara)}
+        records = get_filtered_data(CITY_TABLE, **args)
+        payload = process_response_payload(records, CITY_TABLE_COLUMNS)
 
-        return Response(status=200, mimetype="json/application", response=json.dumps(cities_resp))
+        return Response(status=200,
+                        mimetype="json/application",
+                        response=json.dumps(payload))
 
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)

@@ -33,9 +33,7 @@ def success_insertion_resp_body():
     resp = {'id': last_inserted_id}
     return resp
 
-def get_data_from_table(table, columns):
-    cursor.execute(f'SELECT * FROM {table}')
-    records = cursor.fetchall()
+def process_response_payload(records, columns):
     resp = []
     for record in records:
         obj = {}
@@ -45,6 +43,7 @@ def get_data_from_table(table, columns):
         resp.append(obj)
     return resp
 
+
 def delete_record_by_id(table, id):
     try:
         cursor.execute(f'DELETE FROM {table} WHERE id = {id}')
@@ -53,5 +52,12 @@ def delete_record_by_id(table, id):
     db_connection.commit()
     return 200
 
-def ceva():
-    return
+def get_filtered_data(table, **kwargs):
+    query = f'SELECT * from {table}'
+
+    for key, val in kwargs.items():
+        query += f' WHERE {key} = {val}'
+
+    cursor.execute(query)
+    records = cursor.fetchall()
+    return records
