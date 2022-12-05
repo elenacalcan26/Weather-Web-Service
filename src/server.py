@@ -65,7 +65,7 @@ def country_processing(id):
 
     elif request.method == "DELETE":
         del_status = delete_record_by_id(COUNTRY_TABLE, int(id))
-        return Response(status=200)
+        return Response(status=del_status)
 
 
 @app.route('/api/cities', methods=["GET", "POST"])
@@ -106,6 +106,28 @@ def get_cities_from_country(id_Tara):
         return Response(status=200,
                         mimetype="json/application",
                         response=json.dumps(payload))
+
+@app.route('/api/temperatures', methods=["POST"])
+def temperature_op():
+    if request.method == "POST":
+        body = request.json
+        if 'idOras' not in body or 'valoare' not in body:
+            return Response(status=400)
+
+        if not isinstance(body['idOras'], int) or not isinstance(body['valoare'], float):
+            return Response(status=400)
+
+        data_to_insert = (int(body['idOras']), float(body['valoare']))
+        insert_status = insert_record(TEMPERATURE_TABLE, TEMPERATURE_TABLE_COLUMNS_OP, data_to_insert)
+
+        if insert_status != 201:
+            return Response(status=insert_status)
+
+        return Response(status=201,
+                        mimetype="json/application",
+                        response=json.dumps(success_insertion_resp_body()))
+
+
 
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)

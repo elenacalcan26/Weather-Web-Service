@@ -13,8 +13,10 @@ cursor = db_connection.cursor()
 
 COUNTRY_TABLE = 'Country'
 CITY_TABLE = 'City'
+TEMPERATURE_TABLE = 'Temperature'
 COUNTRY_TABLE_COLUMNS_INSERT = ('country_name', 'latitude', 'longitude')
 CITY_TABLE_COLUMNS_INSERT = ('country_id', 'city_name', 'latitude', 'longitude')
+TEMPERATURE_TABLE_COLUMNS_OP = ('city_id', 'value')
 COUNTRY_TABLE_COLUMNS = ('id', 'nume', 'lat', 'lon')
 CITY_TABLE_COLUMNS = ('id', 'idTara', 'nume', 'lat', 'lon')
 
