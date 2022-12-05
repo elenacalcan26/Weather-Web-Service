@@ -1,4 +1,5 @@
 import  mysql.connector as mysql
+from datetime import date, datetime
 import sys
 
 db_connection=mysql.connect(
@@ -19,14 +20,20 @@ CITY_TABLE_COLUMNS_INSERT = ('country_id', 'city_name', 'latitude', 'longitude')
 TEMPERATURE_TABLE_COLUMNS_OP = ('city_id', 'value')
 COUNTRY_TABLE_COLUMNS = ('id', 'nume', 'lat', 'lon')
 CITY_TABLE_COLUMNS = ('id', 'idTara', 'nume', 'lat', 'lon')
+TEMPERATURE_TABLE_COLUMNS = ('id', 'value', 'timestamp', 'city_id')
+# TODO sa fac ceva in privinta asta :D
+TEMPERATURE_TABLE_COLUMNS_SEL = ('id', 'value', 'timestamp')
+TEMPERATURE_TABLE_COLUMNS_RO = ('id', 'valoare', 'timestamp')
+
 
 def insert_record(table, columns, data):
     body = ', '.join(str(column) for column in columns)
     try:
         cursor.execute(f'INSERT INTO {table} ({body}) VALUES {data}')
+        db_connection.commit()
     except:
         return 400
-    db_connection.commit()
+
     return 201
 
 def success_insertion_resp_body():
@@ -42,7 +49,11 @@ def process_response_payload(records, columns):
         obj = {}
         for i in range(len(record)):
             column = columns[i]
-            obj[column] = record[i]
+
+            if isinstance(record[i], (datetime, date)):
+                obj[column] = record[i].strftime('%Y-%m-%d')
+            else:
+                obj[column] = record[i]
         resp.append(obj)
     return resp
 
@@ -55,11 +66,20 @@ def delete_record_by_id(table, id):
     db_connection.commit()
     return 200
 
-def get_filtered_data(table, **kwargs):
-    query = f'SELECT * FROM {table}'
+def get_filtered_data(table, columns_to_select, **kwargs):
+    # maybe i should delete calling this function with '*' (blah, '*', ..)
+    query = ''
+    if not isinstance(columns_to_select, str):
+        body = ', '.join(str(column) for column in columns_to_select)
+        query = f'SELECT ({body}) FROM {table}'
+    else:
+        query = f'SELECT {columns_to_select} FROM {table}'
 
-    for key, val in kwargs.items():
-        query += f' WHERE {key} = {val}'
+    if kwargs:
+        query += ' WHERE '
+        query += ' AND '.join(str(col) + ' = ' + str(val) for col, val in kwargs.items())
+
+    print(query, flush=True)
 
     cursor.execute(query)
     records = cursor.fetchall()
@@ -91,3 +111,16 @@ def update_record(table, columns, data, id):
 
     db_connection.commit()
     return 200
+
+def get_records_in_multiple_values(table, columns_to_select, cond_values, column):
+    body = ', '.join(str(column) for column in columns_to_select)
+    cond_body = ', '.join(str(cond) for cond in cond_values)
+
+    print(cond_body, flush=True)
+
+    # print(f'SELECT {body} FROM {table} WHERE {column} IN ({cond_body})', flush=True)
+
+    cursor.execute(f'SELECT {body} FROM {table} WHERE {column} IN ({cond_body})')
+    # db_connection.commit()
+
+    return cursor.fetchall()
