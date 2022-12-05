@@ -107,6 +107,32 @@ def get_cities_from_country(id_Tara):
                         mimetype="json/application",
                         response=json.dumps(payload))
 
+@app.route('/api/cities/<id>', methods=["PUT", "DELETE"])
+def city_processing(id):
+    if request.method == "PUT":
+        smth = request.json
+
+        if "id" not in smth or "idTara" not in smth or "nume" not in smth or "lat" not in smth or "lon" not in smth:
+            return Response(status=400)
+
+        if int(id) != int(smth['id']):
+            return Response(status=400)
+
+        args = {'id': int(id)}
+        selected_country = get_filtered_data(CITY_TABLE, **args)
+
+        if selected_country is None:
+            return Response(status=400)
+
+        data_to_update = (int(smth['idTara']), str(smth['nume']), float(smth['lat']), float(smth['lon']))
+        update_status = update_record(CITY_TABLE, CITY_TABLE_COLUMNS_INSERT, data_to_update, int(id))
+
+        return Response(status=update_status)
+    elif request.method == "DELETE":
+        del_status = delete_record_by_id(CITY_TABLE, int(id))
+        return Response(status=del_status)
+    return
+
 @app.route('/api/temperatures', methods=["POST"])
 def temperature_op():
     if request.method == "POST":
@@ -127,7 +153,33 @@ def temperature_op():
                         mimetype="json/application",
                         response=json.dumps(success_insertion_resp_body()))
 
+@app.route('/api/temperatures/<id>', methods=["PUT", "DELETE"])
+def temperature_processing(id):
+    if request.method == "PUT":
+        smth = request.json
 
+        if "id" not in smth or "idOras" not in smth or "valoare" not in smth:
+            return Response(status=400)
+
+        if int(id) != int(smth['id']):
+            return Response(status=400)
+
+        args = {'id': int(id)}
+        selected_country = get_filtered_data(CITY_TABLE, **args)
+
+        if selected_country is None:
+            return Response(status=400)
+
+        data_to_update = (int(smth['idOras']), float(smth['valoare']))
+        # TODO ar trebui sa schimb si id-ul ??
+        update_status = update_record(TEMPERATURE_TABLE, TEMPERATURE_TABLE_COLUMNS_OP, data_to_update, int(id))
+
+        return Response(status=update_status)
+
+    elif request.method == "DELETE":
+        del_status = delete_record_by_id(TEMPERATURE_TABLE, int(id))
+
+        return Response(status=del_status)
 
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)

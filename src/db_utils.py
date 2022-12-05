@@ -83,7 +83,7 @@ def update_record(table, columns, data, id):
             query += ', '
 
     query += f' WHERE id = {id}'
-    print(query, flush=True)
+    # print(query, flush=True)
     try:
         cursor.execute(query)
     except:
