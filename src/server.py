@@ -185,6 +185,8 @@ def temperature_processing(id):
 def get_temperatures_by_params():
     lat = request.args.get('lat')
     lon = request.args.get('lon')
+    from_date = request.args.get('from')
+    until_date = request.args.get('until')
 
     args = {}
 
@@ -197,14 +199,21 @@ def get_temperatures_by_params():
     city_ids = get_filtered_data(CITY_TABLE, 'id', **args)
     id_conditions = (id[0] for id in city_ids)
 
-    # id val si timestamp
+    # if from_date is None:
+    #    return Response(status=200,
+    #                 mimetype="json/application",
+    #                 response=json.dumps({}))
+
+    # if until_date is None:
+    #     pass
+
     temp_records = get_records_in_multiple_values(
         TEMPERATURE_TABLE,
         TEMPERATURE_TABLE_COLUMNS_SEL,
         id_conditions,
         'city_id')
 
-    print(temp_records, flush=True)
+    # print(temp_records, flush=True)
 
     payload = process_response_payload(temp_records, TEMPERATURE_TABLE_COLUMNS_RO)
 
