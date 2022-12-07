@@ -3,33 +3,33 @@ USE WeatherDB;
 
 CREATE TABLE IF NOT EXISTS Country
 (
-    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     country_name VARCHAR(30) NOT NULL UNIQUE,
-    latitude DOUBLE(7, 2) NOT NULL,
-    longitude DOUBLE(7, 2) NOT NULL
+    latitude DOUBLE(7, 3) NOT NULL,
+    longitude DOUBLE(7, 3) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS City
 (
-    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     country_id INTEGER NOT NULL,
     city_name VARCHAR(30) NOT NULL,
-    latitude DOUBLE(7, 2) NOT NULL,
-    longitude DOUBLE(7, 2) NOT NULL,
+    latitude DOUBLE(7, 3) NOT NULL,
+    longitude DOUBLE(7, 3) NOT NULL,
+    CONSTRAINT uk_city UNIQUE(country_id, city_name),
     CONSTRAINT fk_country_id FOREIGN KEY (country_id)
     REFERENCES Country(id)
-    ON DELETE CASCADE,
-    CONSTRAINT uk_city UNIQUE(country_id, city_name)
+    ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Temperature
 (
-    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    value DOUBLE(7, 2),
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    value DOUBLE(7, 3),
+    timestamp DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
     city_id INTEGER NOT NULL,
+    CONSTRAINT uk_temp UNIQUE(city_id, timestamp),
     CONSTRAINT fk_city_id FOREIGN KEY (city_id)
     REFERENCES City(id)
-    ON DELETE CASCADE,
-    CONSTRAINT uk_temp UNIQUE(city_id, timestamp)
+    ON DELETE CASCADE
 );

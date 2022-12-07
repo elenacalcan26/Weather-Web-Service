@@ -33,7 +33,7 @@ def countries_op():
                         response=json.dumps(success_insertion_resp_body()))
 
     elif request.method == "GET":
-        records = get_filtered_data(COUNTRY_TABLE)
+        records = get_filtered_data(COUNTRY_TABLE, '*')
         payload = process_response_payload(records, COUNTRY_TABLE_COLUMNS)
         return Response(status=200,
                         mimetype="json/application",
@@ -52,7 +52,7 @@ def country_processing(id):
             return Response(status=400)
 
         args = {'id': int(id)}
-        selected_country = get_filtered_data(COUNTRY_TABLE, **args)
+        selected_country = get_filtered_data(COUNTRY_TABLE, '*', **args)
 
         if selected_country is None:
             return Response(status=400)
@@ -85,14 +85,14 @@ def cities_op():
         insert_status = insert_record(CITY_TABLE, CITY_TABLE_COLUMNS_INSERT, data_to_insert)
 
         if insert_status == 400:
-            return Response(status= 400)
+            return Response(status=400)
 
         return Response(status=201,
                         mimetype="json/application",
                         response=json.dumps(success_insertion_resp_body()))
 
     elif request.method == "GET":
-        records = get_filtered_data(CITY_TABLE)
+        records = get_filtered_data(CITY_TABLE, '*')
         payload = process_response_payload(records, CITY_TABLE_COLUMNS)
         return Response(status=200, mimetype="json/application", response=json.dumps(payload))
 
@@ -100,7 +100,7 @@ def cities_op():
 def get_cities_from_country(id_Tara):
     if request.method == "GET":
         args = {'country_id': int(id_Tara)}
-        records = get_filtered_data(CITY_TABLE, **args)
+        records = get_filtered_data(CITY_TABLE, '*', **args)
         payload = process_response_payload(records, CITY_TABLE_COLUMNS)
 
         return Response(status=200,
@@ -119,7 +119,7 @@ def city_processing(id):
             return Response(status=400)
 
         args = {'id': int(id)}
-        selected_country = get_filtered_data(CITY_TABLE, **args)
+        selected_country = get_filtered_data(CITY_TABLE, '*', **args)
 
         if selected_country is None:
             return Response(status=400)
@@ -165,7 +165,7 @@ def temperature_processing(id):
             return Response(status=400)
 
         args = {'id': int(id)}
-        selected_country = get_filtered_data(CITY_TABLE, **args)
+        selected_country = get_filtered_data(CITY_TABLE, '*', **args)
 
         if selected_country is None:
             return Response(status=400)
@@ -180,6 +180,46 @@ def temperature_processing(id):
         del_status = delete_record_by_id(TEMPERATURE_TABLE, int(id))
 
         return Response(status=del_status)
+
+@app.route('/api/temperatures', methods=["GET"])
+def get_temperatures_by_params():
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
+    from_date = request.args.get('from')
+    until_date = request.args.get('until')
+
+    args = {}
+
+    if lat is not None:
+        args['latitude'] = float(lat)
+
+    if lon is not None:
+        args['longitude'] = float(lon)
+
+    city_ids = get_filtered_data(CITY_TABLE, 'id', **args)
+    id_conditions = (id[0] for id in city_ids)
+
+    # if from_date is None:
+    #    return Response(status=200,
+    #                 mimetype="json/application",
+    #                 response=json.dumps({}))
+
+    # if until_date is None:
+    #     pass
+
+    temp_records = get_records_in_multiple_values(
+        TEMPERATURE_TABLE,
+        TEMPERATURE_TABLE_COLUMNS_SEL,
+        id_conditions,
+        'city_id')
+
+    # print(temp_records, flush=True)
+
+    payload = process_response_payload(temp_records, TEMPERATURE_TABLE_COLUMNS_RO)
+
+    return Response(status=200,
+                    mimetype="json/application",
+                    response=json.dumps(payload))
 
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)
