@@ -188,7 +188,15 @@ def get_temperatures_by_params():
     from_date = request.args.get('from')
     until_date = request.args.get('until')
 
+    temp_records = ()
+
+    if lat is None and lon is None and from_date is None and until_date is None:
+        # TODO verifica parametri: if balblah is None and blahblah: select * from Temperatures;
+
+        pass
+
     args = {}
+    args_limit = {}
 
     if lat is not None:
         args['latitude'] = float(lat)
@@ -196,24 +204,37 @@ def get_temperatures_by_params():
     if lon is not None:
         args['longitude'] = float(lon)
 
+    # iau id-ul oraselor care au coordonatele date ca si parametrii ai URL-ului
     city_ids = get_filtered_data(CITY_TABLE, 'id', **args)
     id_conditions = (id[0] for id in city_ids)
 
-    # if from_date is None:
-    #    return Response(status=200,
-    #                 mimetype="json/application",
-    #                 response=json.dumps({}))
+    # ar trebui sa verific si lat si lon
+    # sau ar trebui sa verific daca exista tarii cu coord acelea
 
-    # if until_date is None:
-    #     pass
+    temp_records = ()
 
-    temp_records = get_records_in_multiple_values(
-        TEMPERATURE_TABLE,
-        TEMPERATURE_TABLE_COLUMNS_SEL,
-        id_conditions,
-        'city_id')
+    if from_date is not None:
+        args_limit['>'] = from_date
 
-    # print(temp_records, flush=True)
+    if until_date is not None:
+        args_limit['<'] = until_date
+
+    if city_ids:
+        subclause_temp_city = f'city_id IN ('+ ', '.join(str(cond[0]) for cond in city_ids) + ')'
+
+    if args_limit:
+        subclause_temp_city = f'city_id IN ('+ ', '.join(str(cond[0]) for cond in city_ids) + ')'
+        temp_records = get_records_in_between_limit(TEMPERATURE_TABLE,
+                                       TEMPERATURE_TABLE_COLUMNS_SEL,
+                                       'timestamp',
+                                       args_limit,
+                                       subclause_temp_city)
+    else:
+        temp_records = get_records_in_multiple_values(
+                                                    TEMPERATURE_TABLE,
+                                                    TEMPERATURE_TABLE_COLUMNS_SEL,
+                                                    id_conditions,
+                                                    'city_id')
 
     payload = process_response_payload(temp_records, TEMPERATURE_TABLE_COLUMNS_RO)
 

@@ -66,6 +66,7 @@ def delete_record_by_id(table, id):
     db_connection.commit()
     return 200
 
+# TODO poate schimb numele metodei
 def get_filtered_data(table, columns_to_select, **kwargs):
     # maybe i should delete calling this function with '*' (blah, '*', ..)
     query = ''
@@ -113,14 +114,40 @@ def update_record(table, columns, data, id):
     return 200
 
 def get_records_in_multiple_values(table, columns_to_select, cond_values, column):
+    # check cond values, sa ii pun val default?
     body = ', '.join(str(column) for column in columns_to_select)
     cond_body = ', '.join(str(cond) for cond in cond_values)
 
-    print(cond_body, flush=True)
-
-    # print(f'SELECT {body} FROM {table} WHERE {column} IN ({cond_body})', flush=True)
-
     cursor.execute(f'SELECT {body} FROM {table} WHERE {column} IN ({cond_body})')
-    # db_connection.commit()
+
+    return cursor.fetchall()
+
+def get_records_in_between_limit(table,
+                                 columns_to_select,
+                                 limited_col,
+                                 limits,
+                                 subclause):
+
+    # ar trebui verificat limits??
+    limits_body = ''
+    subclause_body = ''
+    body = ', '.join(str(column) for column in columns_to_select)
+
+    if limits:
+        smth = f' CAST(DATE({limited_col}) AS CHAR)'
+        limits_body = ' WHERE '
+        limits_body = f' WHERE {smth} '
+        limits_body += f' AND {smth}'.join(key + ' ' + val + ' ' for key, val in limits.items())
+
+    if subclause:
+        subclause_body = 'AND ' + f'{subclause}'
+
+    query =  f'SELECT {body} FROM {table} {limits_body} {subclause_body}'
+
+    print(query, flush=True)
+
+    cursor.execute(
+       query
+    )
 
     return cursor.fetchall()
