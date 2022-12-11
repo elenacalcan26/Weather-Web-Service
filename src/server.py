@@ -8,16 +8,16 @@ app = Flask(__name__)
 @app.route('/api/countries', methods=["GET", "POST"])
 def countries_op():
     if request.method == "POST":
-        smth = request.json
-        if smth is None:
+        req_body = request.json
+        if req_body is None:
             return Response(status=400)
 
-        if "nume" not in smth or "lat" not in smth or "lon" not in smth:
+        if "nume" not in req_body or "lat" not in req_body or "lon" not in req_body:
             return Response(status=400)
 
-        country_name = smth["nume"]
-        lat = float(smth["lat"])
-        lon = float(smth["lon"])
+        country_name = req_body["nume"]
+        lat = float(req_body["lat"])
+        lon = float(req_body["lon"])
 
         if not isinstance(country_name, str) or not isinstance(lat, float) or not isinstance(lon, float):
             return Response(status=400)
@@ -25,7 +25,7 @@ def countries_op():
         data_to_be_inserted = (country_name, lat, lon)
         insert_status = insert_record(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS_INSERT, data_to_be_inserted)
 
-        if insert_status == 400:
+        if insert_status == 409:
             return Response(status=insert_status)
 
         return Response(status=201,
@@ -43,19 +43,19 @@ def countries_op():
 @app.route('/api/countries/<id>', methods=["PUT", "DELETE"])
 def country_processing(id):
     if request.method == "PUT":
-        smth = request.json
+        req_body = request.json
 
-        if "id" not in smth or "nume" not in smth or "lat" not in smth or "lon" not in smth:
+        if "id" not in req_body or "nume" not in req_body or "lat" not in req_body or "lon" not in req_body:
             return Response(status=400)
 
-        if int(id) != int(smth['id']):
+        if int(id) != int(req_body['id']):
             return Response(status=400)
 
         args = {'id': int(id)}
         selected_country = get_filtered_data(COUNTRY_TABLE, '*', **args)
 
         if selected_country is None:
-            return Response(status=400)
+            return Response(status=404)
 
         data_to_update = (str(smth['nume']), float(smth['lat']), float(smth['lon']))
         # TODO chenge name of COUNTRY_TABLE_COLUMNS_INSERT to smth else
@@ -84,8 +84,8 @@ def cities_op():
         data_to_insert = (country_id, city_name, latitude, longitude)
         insert_status = insert_record(CITY_TABLE, CITY_TABLE_COLUMNS_INSERT, data_to_insert)
 
-        if insert_status == 400:
-            return Response(status=400)
+        if insert_status == 409:
+            return Response(status=409)
 
         return Response(status=201,
                         mimetype="json/application",
@@ -122,7 +122,7 @@ def city_processing(id):
         selected_country = get_filtered_data(CITY_TABLE, '*', **args)
 
         if selected_country is None:
-            return Response(status=400)
+            return Response(status=404)
 
         data_to_update = (int(smth['idTara']), str(smth['nume']), float(smth['lat']), float(smth['lon']))
         update_status = update_record(CITY_TABLE, CITY_TABLE_COLUMNS_INSERT, data_to_update, int(id))
@@ -168,7 +168,7 @@ def temperature_processing(id):
         selected_country = get_filtered_data(CITY_TABLE, '*', **args)
 
         if selected_country is None:
-            return Response(status=400)
+            return Response(status=404)
 
         data_to_update = (int(smth['idOras']), float(smth['valoare']))
         # TODO ar trebui sa schimb si id-ul ??

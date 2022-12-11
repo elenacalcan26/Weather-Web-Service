@@ -32,7 +32,7 @@ def insert_record(table, columns, data):
         cursor.execute(f'INSERT INTO {table} ({body}) VALUES {data}')
         db_connection.commit()
     except:
-        return 400
+        return 409
 
     return 201
 
@@ -62,7 +62,7 @@ def delete_record_by_id(table, id):
     try:
         cursor.execute(f'DELETE FROM {table} WHERE id = {id}')
     except:
-        return 400
+        return 404
     db_connection.commit()
     return 200
 
@@ -108,7 +108,7 @@ def update_record(table, columns, data, id):
     try:
         cursor.execute(query)
     except:
-        return 400
+        return 404
 
     db_connection.commit()
     return 200
