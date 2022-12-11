@@ -242,5 +242,87 @@ def get_temperatures_by_params():
                     mimetype="json/application",
                     response=json.dumps(payload))
 
+@app.route('/api/temperatures/cities/<id>', methods=["GET"])
+def get_city_temperatures(id):
+    from_date = request.args.get('from')
+    until_date = request.args.get('until')
+    args_limit = {}
+    temp_records = ()
+
+    if from_date is not None:
+        args_limit['>'] = from_date
+
+    if until_date is not None:
+        args_limit['<'] = until_date
+
+    if args_limit:
+        subclause_city_id = f'city_id = {id}'
+        temp_records = get_records_in_between_limit(
+            TEMPERATURE_TABLE,
+            TEMPERATURE_TABLE_COLUMNS_SEL,
+            'timestamp',
+            args_limit,
+            subclause_city_id
+        )
+    else:
+        args = {'city_id': int(id)}
+        temp_records = get_filtered_data(
+            TEMPERATURE_TABLE,
+            TEMPERATURE_TABLE_COLUMNS_SEL,
+            **args
+        )
+
+    payload = process_response_payload(temp_records, TEMPERATURE_TABLE_COLUMNS_RO)
+
+    return Response(status=200,
+                    mimetype="json/application",
+                    response=json.dumps(payload))
+
+@app.route('/api/temperatures/countries/<id>', methods=["GET"])
+def get_country_temperatures(id):
+    from_date = request.args.get('from')
+    until_date = request.args.get('until')
+    args_limit = {}
+    temp_records = ()
+
+    if from_date is not None:
+        args_limit['>'] = from_date
+
+    if until_date is not None:
+        args_limit['<'] = until_date
+
+    # iau orasele din DB care se afla in tara cu id-ul dat
+    arg_country_id = {'country_id': int(id)}
+    cities_from_country = get_filtered_data(
+        CITY_TABLE,
+        'id',
+        **arg_country_id
+    )
+
+    if args_limit:
+        subclause_cities = f'city_id IN ' + ', '.join(str(city[0]) for city in cities_from_country) + ')'
+        temp_records = get_records_in_between_limit(
+            TEMPERATURE_TABLE,
+            TEMPERATURE_TABLE_COLUMNS_SEL,
+            'timestamp',
+            **args_limit,
+            subclause=subclause_cities
+        )
+
+    else:
+        values = (city[0] for city in cities_from_country)
+        temp_records = get_records_in_multiple_values(
+            TEMPERATURE_TABLE,
+            TEMPERATURE_TABLE_COLUMNS_SEL,
+            values,
+            'city_id'
+        )
+
+    payload = process_response_payload(temp_records, TEMPERATURE_TABLE_COLUMNS_RO)
+
+    return Response(status=200,
+                    mimetype="json/application",
+                    response=json.dumps(payload))
+
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)

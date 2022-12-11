@@ -72,7 +72,7 @@ def get_filtered_data(table, columns_to_select, **kwargs):
     query = ''
     if not isinstance(columns_to_select, str):
         body = ', '.join(str(column) for column in columns_to_select)
-        query = f'SELECT ({body}) FROM {table}'
+        query = f'SELECT {body} FROM {table}'
     else:
         query = f'SELECT {columns_to_select} FROM {table}'
 
@@ -151,3 +151,4 @@ def get_records_in_between_limit(table,
     )
 
     return cursor.fetchall()
+
