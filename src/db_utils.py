@@ -1,4 +1,4 @@
-import  mysql.connector as mysql
+import mysql.connector as mysql
 from datetime import date, datetime
 import sys
 
@@ -21,9 +21,8 @@ TEMPERATURE_TABLE_COLUMNS_OP = ('city_id', 'value')
 COUNTRY_TABLE_COLUMNS = ('id', 'nume', 'lat', 'lon')
 CITY_TABLE_COLUMNS = ('id', 'idTara', 'nume', 'lat', 'lon')
 TEMPERATURE_TABLE_COLUMNS = ('id', 'value', 'timestamp', 'city_id')
-# TODO sa fac ceva in privinta asta :D
-TEMPERATURE_TABLE_COLUMNS_SEL = ('id', 'value', 'timestamp')
-TEMPERATURE_TABLE_COLUMNS_RO = ('id', 'valoare', 'timestamp')
+TEMPERATURE_TABLE_COLUMNS_SELECT = ('id', 'value', 'timestamp')
+TEMPERATURE_RESPONSE_FIELDS = ('id', 'valoare', 'timestamp')
 
 
 def insert_record(table, columns, data):
@@ -66,9 +65,7 @@ def delete_record_by_id(table, id):
     db_connection.commit()
     return 200
 
-# TODO poate schimb numele metodei
 def get_filtered_data(table, columns_to_select, **kwargs):
-    # TODO maybe i should delete calling this function with '*' (blah, '*', ..)
     query = ''
     if not isinstance(columns_to_select, str):
         body = ', '.join(str(column) for column in columns_to_select)
@@ -79,8 +76,6 @@ def get_filtered_data(table, columns_to_select, **kwargs):
     if kwargs:
         query += ' WHERE '
         query += ' AND '.join(str(col) + ' = ' + str(val) for col, val in kwargs.items())
-
-    print(query, flush=True)
 
     cursor.execute(query)
     records = cursor.fetchall()
@@ -122,11 +117,11 @@ def get_records_in_multiple_values(table, columns_to_select, cond_values, column
 
     return cursor.fetchall()
 
-def get_records_in_between_limit(table,
-                                 columns_to_select,
-                                 limited_col,
-                                 limits,
-                                 subclause):
+def get_records_between_dates(table,
+                                columns_to_select,
+                                limited_col,
+                                limits,
+                                subclause):
 
 
     limits_body = ''
@@ -134,20 +129,16 @@ def get_records_in_between_limit(table,
     body = ', '.join(str(column) for column in columns_to_select)
 
     if limits:
-        smth = f' CAST(DATE({limited_col}) AS CHAR)'
+        char_date = f' CAST(DATE({limited_col}) AS CHAR)'
         limits_body = ' WHERE '
-        limits_body = f' WHERE {smth} '
-        limits_body += f' AND {smth}'.join(key + ' ' + val + ' ' for key, val in limits.items())
+        limits_body = f' WHERE {char_date} '
+        limits_body += f' AND {char_date}'.join(key + ' ' + val + ' ' for key, val in limits.items())
 
     if subclause:
         subclause_body = 'AND ' + f'{subclause}'
 
-    query =  f'SELECT {body} FROM {table} {limits_body} {subclause_body}'
-
-    print(query, flush=True)
-
     cursor.execute(
-       query
+       f'SELECT {body} FROM {table} {limits_body} {subclause_body}'
     )
 
     return cursor.fetchall()

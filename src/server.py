@@ -68,7 +68,6 @@ def country_processing(id):
             return Response(status=404)
 
         data_to_update = (str(req_body['nume']), float(req_body['lat']), float(req_body['lon']))
-        # TODO chenge name of COUNTRY_TABLE_COLUMNS_INSERT to smth else
         update_status = update_record(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS_INSERT, data_to_update, int(id))
 
         return Response(status=update_status)
@@ -227,19 +226,19 @@ def get_temperatures_by_params():
 
     if args_limit:
         subclause_temp_city = f'city_id IN ('+ ', '.join(str(cond[0]) for cond in city_ids) + ')'
-        temp_records = get_records_in_between_limit(TEMPERATURE_TABLE,
-                                       TEMPERATURE_TABLE_COLUMNS_SEL,
+        temp_records = get_records_between_dates(TEMPERATURE_TABLE,
+                                       TEMPERATURE_TABLE_COLUMNS_SELECT,
                                        'timestamp',
                                        args_limit,
                                        subclause_temp_city)
     else:
         temp_records = get_records_in_multiple_values(
                                                     TEMPERATURE_TABLE,
-                                                    TEMPERATURE_TABLE_COLUMNS_SEL,
+                                                    TEMPERATURE_TABLE_COLUMNS_SELECT,
                                                     id_conditions,
                                                     'city_id')
 
-    payload = process_response_payload(temp_records, TEMPERATURE_TABLE_COLUMNS_RO)
+    payload = process_response_payload(temp_records, TEMPERATURE_RESPONSE_FIELDS)
 
     return Response(status=200,
                     mimetype="json/application",
@@ -260,9 +259,9 @@ def get_city_temperatures(id):
 
     if args_limit:
         subclause_city_id = f'city_id = {id}'
-        temp_records = get_records_in_between_limit(
+        temp_records = get_records_between_dates(
             TEMPERATURE_TABLE,
-            TEMPERATURE_TABLE_COLUMNS_SEL,
+            TEMPERATURE_TABLE_COLUMNS_SELECT,
             'timestamp',
             args_limit,
             subclause_city_id
@@ -271,11 +270,11 @@ def get_city_temperatures(id):
         args = {'city_id': int(id)}
         temp_records = get_filtered_data(
             TEMPERATURE_TABLE,
-            TEMPERATURE_TABLE_COLUMNS_SEL,
+            TEMPERATURE_TABLE_COLUMNS_SELECT,
             **args
         )
 
-    payload = process_response_payload(temp_records, TEMPERATURE_TABLE_COLUMNS_RO)
+    payload = process_response_payload(temp_records, TEMPERATURE_RESPONSE_FIELDS)
 
     return Response(status=200,
                     mimetype="json/application",
@@ -304,9 +303,9 @@ def get_country_temperatures(id):
 
     if args_limit:
         subclause_cities = f'city_id IN ' + ', '.join(str(city[0]) for city in cities_from_country) + ')'
-        temp_records = get_records_in_between_limit(
+        temp_records = get_records_between_dates(
             TEMPERATURE_TABLE,
-            TEMPERATURE_TABLE_COLUMNS_SEL,
+            TEMPERATURE_TABLE_COLUMNS_SELECT,
             'timestamp',
             **args_limit,
             subclause=subclause_cities
@@ -316,12 +315,12 @@ def get_country_temperatures(id):
         values = (city[0] for city in cities_from_country)
         temp_records = get_records_in_multiple_values(
             TEMPERATURE_TABLE,
-            TEMPERATURE_TABLE_COLUMNS_SEL,
+            TEMPERATURE_TABLE_COLUMNS_SELECT,
             values,
             'city_id'
         )
 
-    payload = process_response_payload(temp_records, TEMPERATURE_TABLE_COLUMNS_RO)
+    payload = process_response_payload(temp_records, TEMPERATURE_RESPONSE_FIELDS)
 
     return Response(status=200,
                     mimetype="json/application",
