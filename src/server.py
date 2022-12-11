@@ -5,22 +5,31 @@ from db_utils import *
 
 app = Flask(__name__)
 
+def check_req_body(req_body, table_req_fields):
+    if req_body is None:
+        return False
+
+    for field, field_type in table_req_fields.items():
+        if field not in req_body.keys():
+            return False
+
+        if field_type != type(req_body[field]):
+            return False
+
+    return True
+
 @app.route('/api/countries', methods=["GET", "POST"])
 def countries_op():
     if request.method == "POST":
         req_body = request.json
-        if req_body is None:
-            return Response(status=400)
 
-        if "nume" not in req_body or "lat" not in req_body or "lon" not in req_body:
+        if not check_req_body(req_body,
+                              {'nume': str, 'lat': float, 'lon': float}):
             return Response(status=400)
 
         country_name = req_body["nume"]
         lat = float(req_body["lat"])
         lon = float(req_body["lon"])
-
-        if not isinstance(country_name, str) or not isinstance(lat, float) or not isinstance(lon, float):
-            return Response(status=400)
 
         data_to_be_inserted = (country_name, lat, lon)
         insert_status = insert_record(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS_INSERT, data_to_be_inserted)
@@ -45,7 +54,8 @@ def country_processing(id):
     if request.method == "PUT":
         req_body = request.json
 
-        if "id" not in req_body or "nume" not in req_body or "lat" not in req_body or "lon" not in req_body:
+        if not check_req_body(req_body,
+                              {'id': int, 'nume': str, 'lat': float, 'lon': float}):
             return Response(status=400)
 
         if int(id) != int(req_body['id']):
@@ -57,7 +67,7 @@ def country_processing(id):
         if selected_country is None:
             return Response(status=404)
 
-        data_to_update = (str(smth['nume']), float(smth['lat']), float(smth['lon']))
+        data_to_update = (str(req_body['nume']), float(req_body['lat']), float(req_body['lon']))
         # TODO chenge name of COUNTRY_TABLE_COLUMNS_INSERT to smth else
         update_status = update_record(COUNTRY_TABLE, COUNTRY_TABLE_COLUMNS_INSERT, data_to_update, int(id))
 
@@ -73,7 +83,8 @@ def cities_op():
     if request.method == "POST":
         body = request.json
 
-        if "idTara" not in body or "nume" not in body or "lat" not in body or "lon" not in body:
+        if not check_req_body(body,
+                              {'idTara': int, 'nume': str, 'lat': float, 'lon': float}):
             return Response(status=400)
 
         country_id = int(body["idTara"])
@@ -110,12 +121,13 @@ def get_cities_from_country(id_Tara):
 @app.route('/api/cities/<id>', methods=["PUT", "DELETE"])
 def city_processing(id):
     if request.method == "PUT":
-        smth = request.json
+        req_body = request.json
 
-        if "id" not in smth or "idTara" not in smth or "nume" not in smth or "lat" not in smth or "lon" not in smth:
+        if not check_req_body(req_body,
+                              {'id': int, 'idTara': int, 'nume': str, 'lat': float, 'lon': float}):
             return Response(status=400)
 
-        if int(id) != int(smth['id']):
+        if int(id) != int(req_body['id']):
             return Response(status=400)
 
         args = {'id': int(id)}
@@ -124,23 +136,23 @@ def city_processing(id):
         if selected_country is None:
             return Response(status=404)
 
-        data_to_update = (int(smth['idTara']), str(smth['nume']), float(smth['lat']), float(smth['lon']))
+        data_to_update = (int(req_body['idTara']), str(req_body['nume']),
+                          float(req_body['lat']), float(req_body['lon']))
         update_status = update_record(CITY_TABLE, CITY_TABLE_COLUMNS_INSERT, data_to_update, int(id))
 
         return Response(status=update_status)
     elif request.method == "DELETE":
         del_status = delete_record_by_id(CITY_TABLE, int(id))
         return Response(status=del_status)
-    return
+
 
 @app.route('/api/temperatures', methods=["POST"])
 def temperature_op():
     if request.method == "POST":
         body = request.json
-        if 'idOras' not in body or 'valoare' not in body:
-            return Response(status=400)
 
-        if not isinstance(body['idOras'], int) or not isinstance(body['valoare'], float):
+        if not check_req_body(body,
+                              {'idOras': int, 'valoare': float}):
             return Response(status=400)
 
         data_to_insert = (int(body['idOras']), float(body['valoare']))
@@ -156,12 +168,13 @@ def temperature_op():
 @app.route('/api/temperatures/<id>', methods=["PUT", "DELETE"])
 def temperature_processing(id):
     if request.method == "PUT":
-        smth = request.json
+        req_body = request.json
 
-        if "id" not in smth or "idOras" not in smth or "valoare" not in smth:
+        if not check_req_body(req_body,
+                              {'id': int, 'idOras': int, 'valoare': str}):
             return Response(status=400)
 
-        if int(id) != int(smth['id']):
+        if int(id) != int(req_body['id']):
             return Response(status=400)
 
         args = {'id': int(id)}
@@ -170,15 +183,13 @@ def temperature_processing(id):
         if selected_country is None:
             return Response(status=404)
 
-        data_to_update = (int(smth['idOras']), float(smth['valoare']))
-        # TODO ar trebui sa schimb si id-ul ??
+        data_to_update = (int(req_body['idOras']), float(req_body['valoare']))
         update_status = update_record(TEMPERATURE_TABLE, TEMPERATURE_TABLE_COLUMNS_OP, data_to_update, int(id))
 
         return Response(status=update_status)
 
     elif request.method == "DELETE":
         del_status = delete_record_by_id(TEMPERATURE_TABLE, int(id))
-
         return Response(status=del_status)
 
 @app.route('/api/temperatures', methods=["GET"])
@@ -189,11 +200,6 @@ def get_temperatures_by_params():
     until_date = request.args.get('until')
 
     temp_records = ()
-
-    if lat is None and lon is None and from_date is None and until_date is None:
-        # TODO verifica parametri: if balblah is None and blahblah: select * from Temperatures;
-
-        pass
 
     args = {}
     args_limit = {}
@@ -207,9 +213,6 @@ def get_temperatures_by_params():
     # iau id-ul oraselor care au coordonatele date ca si parametrii ai URL-ului
     city_ids = get_filtered_data(CITY_TABLE, 'id', **args)
     id_conditions = (id[0] for id in city_ids)
-
-    # ar trebui sa verific si lat si lon
-    # sau ar trebui sa verific daca exista tarii cu coord acelea
 
     temp_records = ()
 

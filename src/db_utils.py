@@ -68,7 +68,7 @@ def delete_record_by_id(table, id):
 
 # TODO poate schimb numele metodei
 def get_filtered_data(table, columns_to_select, **kwargs):
-    # maybe i should delete calling this function with '*' (blah, '*', ..)
+    # TODO maybe i should delete calling this function with '*' (blah, '*', ..)
     query = ''
     if not isinstance(columns_to_select, str):
         body = ', '.join(str(column) for column in columns_to_select)
@@ -104,7 +104,7 @@ def update_record(table, columns, data, id):
             query += ', '
 
     query += f' WHERE id = {id}'
-    # print(query, flush=True)
+
     try:
         cursor.execute(query)
     except:
@@ -114,7 +114,7 @@ def update_record(table, columns, data, id):
     return 200
 
 def get_records_in_multiple_values(table, columns_to_select, cond_values, column):
-    # check cond values, sa ii pun val default?
+
     body = ', '.join(str(column) for column in columns_to_select)
     cond_body = ', '.join(str(cond) for cond in cond_values)
 
@@ -128,7 +128,7 @@ def get_records_in_between_limit(table,
                                  limits,
                                  subclause):
 
-    # ar trebui verificat limits??
+
     limits_body = ''
     subclause_body = ''
     body = ', '.join(str(column) for column in columns_to_select)
@@ -151,4 +151,3 @@ def get_records_in_between_limit(table,
     )
 
     return cursor.fetchall()
-
