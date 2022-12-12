@@ -7,6 +7,6 @@ RUN pip3 install -r /tmp/requirements.txt
 WORKDIR /src
 COPY *.py /src
 
-EXPOSE 500
+EXPOSE 6000
 
 CMD ["python3", "server.py"]
