@@ -26,6 +26,18 @@ TEMPERATURE_RESPONSE_FIELDS = ('id', 'valoare', 'timestamp')
 
 
 def insert_record(table, columns, data):
+    """
+    Inseareaza un record intr-o tabela
+
+    Args:
+        table (str): numele tabelei in care se insereaza
+        columns (tuple): coloanele tabelei in care se insereaza noi date
+        data (tuple): valorile coloanelor
+
+    Returns:
+        int: statusul operatiei
+    """
+
     body = ', '.join(str(column) for column in columns)
     try:
         cursor.execute(f'INSERT INTO {table} ({body}) VALUES {data}')
@@ -36,6 +48,12 @@ def insert_record(table, columns, data):
     return 201
 
 def success_insertion_resp_body():
+    """
+        Returneaza id-ul ultimei linii inserate
+
+    Returns:
+        map: id-ul ultimei linii inserate
+    """
     resp = {}
     cursor.execute("SELECT LAST_INSERT_ID()")
     last_inserted_id = cursor.fetchone()[0]
@@ -43,6 +61,17 @@ def success_insertion_resp_body():
     return resp
 
 def process_response_payload(records, columns):
+    """
+    Genereaza raspunsul server-ului.
+    Raspunsul este compus din record-uri selectate dintr-o anumita tabela.
+
+    Args:
+        records (tuple): record-urile selectate din tabela
+        columns (tuple): coloanele corespunzatoare record-urilor
+
+    Returns:
+        array: list cu valorile coloanelor selectate
+    """
     resp = []
     for record in records:
         obj = {}
@@ -58,6 +87,16 @@ def process_response_payload(records, columns):
 
 
 def delete_record_by_id(table, id):
+    """
+    Sterge din tabela un record cu un id dat
+
+    Args:
+        table (str): tabela din care se face stergerea
+        id (_type_): id-ul record-ului care se sterge
+
+    Returns:
+        int: stat code-ul operatiei
+    """
     try:
         cursor.execute(f'DELETE FROM {table} WHERE id = {id}')
     except:
@@ -66,6 +105,17 @@ def delete_record_by_id(table, id):
     return 200
 
 def get_filtered_data(table, columns_to_select, **kwargs):
+    """
+    Selecteaza datele dintr-o tabela.
+    Datele selectate pot fi filtrate si in functie de niste paramterii optionali
+
+    Args:
+        table (str): tabela din care se selecteaza record-urile
+        columns_to_select (tuple): coloanele selectate din tabela
+
+    Returns:
+        list of tuples: record-urile selectate
+    """
     query = ''
     if not isinstance(columns_to_select, str):
         body = ', '.join(str(column) for column in columns_to_select)
@@ -82,6 +132,18 @@ def get_filtered_data(table, columns_to_select, **kwargs):
     return records
 
 def update_record(table, columns, data, id):
+    """
+    Updateaza un record cu un id dat din tabela
+
+    Args:
+        table (str): tabela updatata
+        columns (tuple): coloanele tabelei care sunt updatate
+        data (tuple): noile valori
+        id (int): id-ul record-ului
+
+    Returns:
+        int: status code-ul operatiei
+    """
     query = f'UPDATE {table} SET '
     num_col = len(columns)
 
@@ -109,6 +171,18 @@ def update_record(table, columns, data, id):
     return 200
 
 def get_records_in_multiple_values(table, columns_to_select, cond_values, column):
+    """
+    Selecteaza record-urile din tabela specficandu-se valorile unei coloane
+
+    Args:
+        table (str): tabela din care se selecteaza record-urile
+        columns_to_select (tuples): coloanele selectate
+        cond_values (tuples): valorile specificate
+        column (_type_): coloana careia is se face match-ul
+
+    Returns:
+        list: record-urile selectate
+    """
 
     body = ', '.join(str(column) for column in columns_to_select)
     cond_body = ', '.join(str(cond) for cond in cond_values)
@@ -123,6 +197,13 @@ def get_records_between_dates(table,
                                 limits,
                                 subclause):
 
+    """
+    Selecteaza din tabela record-uri din tabela ce are un tip de data datetime
+    intr-un interval de datat de start/si sau final.
+
+    Returns:
+        list: record-urile
+    """
 
     limits_body = ''
     subclause_body = ''
