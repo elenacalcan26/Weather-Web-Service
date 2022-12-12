@@ -3,7 +3,7 @@
 #### Calcan Elena-Claudia
 #### 343C3
 
-## Synopsis
+## Synopsys
 ---------------
 
 - este implementat un server web in **Python** si **Flask** microframework
